@@ -1154,16 +1154,18 @@ void patch_memory(const char *cfgfile)
         }
 
         size_t colon = entry.find(':');
-        if (colon != string::npos && entry.size() <= MAX_ENTRY_LEN * 2) {
+        if (colon != string::npos) {
             string saddr = entry.substr(0, colon);
             entry.erase(0, colon + 1);
-            debuglog("memory patch %s:%s", saddr.c_str(), entry.c_str());
-            uint32_t addr = strtol(saddr.c_str(), NULL, 16);
-            uint8_t value[MAX_ENTRY_LEN];
-            for (size_t i = 0; i < entry.size() / 2; i ++)
-                value[i] = (uint8_t)strtol(entry.substr(i * 2, 2).c_str(), NULL, 16);
-            WriteProcessMemory(GetCurrentProcess(), (LPVOID)addr, (LPCVOID)value,
-                               entry.size() / 2, NULL);
+            if (entry.size() <= MAX_ENTRY_LEN * 2) {
+                debuglog("memory patch %s:%s", saddr.c_str(), entry.c_str());
+                uint32_t addr = strtol(saddr.c_str(), NULL, 16);
+                uint8_t value[MAX_ENTRY_LEN];
+                for (size_t i = 0; i < entry.size() / 2; i++)
+                    value[i] = (uint8_t)strtol(entry.substr(i * 2, 2).c_str(), NULL, 16);
+                WriteProcessMemory(GetCurrentProcess(), (LPVOID)addr, (LPCVOID)value,
+                                   entry.size() / 2, NULL);
+            }
         }
     }
 }
