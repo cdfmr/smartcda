@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "loader", "loader.vcxproj", "{07007CB1-D1CC-46C4-9E37-F1B6E62AAE72}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "smartcda", "smartcda.vcxproj", "{B846FDD6-5988-405C-99A2-E91BAB306EB8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{07007CB1-D1CC-46C4-9E37-F1B6E62AAE72}.Debug|Win32.ActiveCfg = Debug|Win32
+		{07007CB1-D1CC-46C4-9E37-F1B6E62AAE72}.Debug|Win32.Build.0 = Debug|Win32
+		{07007CB1-D1CC-46C4-9E37-F1B6E62AAE72}.Release|Win32.ActiveCfg = Release|Win32
+		{07007CB1-D1CC-46C4-9E37-F1B6E62AAE72}.Release|Win32.Build.0 = Release|Win32
+		{B846FDD6-5988-405C-99A2-E91BAB306EB8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B846FDD6-5988-405C-99A2-E91BAB306EB8}.Debug|Win32.Build.0 = Debug|Win32
+		{B846FDD6-5988-405C-99A2-E91BAB306EB8}.Release|Win32.ActiveCfg = Release|Win32
+		{B846FDD6-5988-405C-99A2-E91BAB306EB8}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

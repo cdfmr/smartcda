@@ -1,0 +1,10 @@
+*.ncb
+*.opensdf
+*.sdf
+*.suo
+*.user
+.vscode
+Debug
+Release
+ipch
+bin
