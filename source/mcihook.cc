@@ -142,32 +142,43 @@ const char * parse_mci_tmfmt(DWORD fmt)
 
 const char * parse_mci_cmd(UINT uMsg, DWORD_PTR fdwCommand)
 {
-    static char flagbuf[1024];
-    flagbuf[0] = 0;
+    static std::string flagstr;
+    flagstr.clear();
 
     typedef std::vector<std::pair<DWORD, const char *>> fvec;
     #define new_pair(vec, flag) vec.push_back(std::make_pair(flag, #flag));
+    const auto search_flag = [&fdwCommand](fvec *flags) {
+        if (!fdwCommand || !flags) return;
+        for (auto it = flags->begin(); it != flags->end(); it++) {
+            if (fdwCommand & it->first) {
+                if (!flagstr.empty()) flagstr.append(" | ");
+                flagstr.append(it->second);
+                fdwCommand &= ~it->first;
+                if (!fdwCommand) return;
+            }
+        }
+    };
 
     fvec flagcomm;
-    new_pair(flagcomm, MCI_NOTIFY);
-    new_pair(flagcomm, MCI_WAIT);
+    new_pair(flagcomm,   MCI_NOTIFY);
+    new_pair(flagcomm,   MCI_WAIT);
 
     fvec flagopen;
-    new_pair(flagopen, MCI_OPEN_TYPE);
-    new_pair(flagopen, MCI_OPEN_TYPE_ID);
-    new_pair(flagopen, MCI_OPEN_ELEMENT);
+    new_pair(flagopen,   MCI_OPEN_TYPE);
+    new_pair(flagopen,   MCI_OPEN_TYPE_ID);
+    new_pair(flagopen,   MCI_OPEN_ELEMENT);
 
     fvec flagplay;
-    new_pair(flagplay, MCI_FROM);
-    new_pair(flagplay, MCI_TO);
+    new_pair(flagplay,   MCI_FROM);
+    new_pair(flagplay,   MCI_TO);
 
     fvec flagseek;
-    new_pair(flagseek, MCI_SEEK_TO_END);
-    new_pair(flagseek, MCI_SEEK_TO_START);
-    new_pair(flagseek, MCI_TO);
+    new_pair(flagseek,   MCI_SEEK_TO_END);
+    new_pair(flagseek,   MCI_SEEK_TO_START);
+    new_pair(flagseek,   MCI_TO);
 
     fvec flagset;
-    new_pair(flagset, MCI_SET_TIME_FORMAT);
+    new_pair(flagset,    MCI_SET_TIME_FORMAT);
 
     fvec flagstatus;
     new_pair(flagstatus, MCI_STATUS_ITEM);
@@ -184,34 +195,18 @@ const char * parse_mci_cmd(UINT uMsg, DWORD_PTR fdwCommand)
         case MCI_STATUS: flags = &flagstatus; break;
     }
 
-    if (flags) {
-        for (fvec::iterator it = flags->begin(); it != flags->end(); it++) {
-            if (fdwCommand & it->first) {
-                if (flagbuf[0]) strcat(flagbuf, " | ");
-                strcat(flagbuf, it->second);
-                fdwCommand &= ~it->first;
-            }
-        }
-    }
-
-    for (fvec::iterator it = flagcomm.begin(); it != flagcomm.end(); it++) {
-        if (fdwCommand & it->first) {
-            if (flagbuf[0]) strcat(flagbuf, " | ");
-            strcat(flagbuf, it->second);
-            fdwCommand &= ~it->first;
-        }
-    }
-
+    search_flag(flags);
+    search_flag(&flagcomm);
     if (fdwCommand) {
-        if (flagbuf[0]) strcat(flagbuf, " | ");
+        if (!flagstr.empty()) flagstr.append(" | ");
         char buffer[16];
         sprintf(buffer, "0x%08x", fdwCommand);
-        strcat(flagbuf, buffer);
+        flagstr.append(buffer);
     }
 
-    if (!flagbuf[0]) strcpy(flagbuf, "0");
+    if (flagstr.empty()) flagstr = "0";
 
-    return flagbuf;
+    return flagstr.c_str();
 }
 
 // unit conversion
@@ -542,6 +537,9 @@ DWORD mci_play(DWORD fdwCommand, DWORD dwParam)
         }
     } else {
         mci_stop(0, 0);
+        if (track <= 0 || track > audplay.tcount) {
+            return MCIERR_FILE_READ;
+        }
         audplay.stream =
             audiere::OpenSound(audplay.device,
                                audplay.tracks[track].filename.c_str(),
@@ -554,6 +552,59 @@ DWORD mci_play(DWORD fdwCommand, DWORD dwParam)
     }
     debug("  AUDIERE play : %s", audplay.tracks[track].filename.c_str());
     audplay.stream->play();
+
+    return MMSYSERR_NOERROR;
+}
+
+DWORD mci_seek(DWORD fdwCommand, DWORD dwParam)
+{
+    MCI_SEEK_PARMS *params = (MCI_SEEK_PARMS *)dwParam;
+    char *sto = "";
+    char buf[16];
+    if (fdwCommand & MCI_SEEK_TO_START) {
+        sto = "start";
+    } else if (fdwCommand & MCI_SEEK_TO_END) {
+        sto = "end";
+    } else if (fdwCommand & MCI_TO) {
+        sprintf(buf, "%d", params->dwTo);
+        sto = buf;
+    }
+    debug("  MCI_SEEK : to(%s) callback(0x%08x)", sto, params->dwCallback);
+
+    if (!audplay.device) return MCIERR_DEVICE_NOT_READY;
+
+    mci_stop(0, 0);
+    audplay.endpos = 0;
+
+    uint32_t track, pos;
+    if (fdwCommand & MCI_SEEK_TO_START) {
+        track = config.audfirst;
+        pos = 0;
+    } else if (fdwCommand & MCI_SEEK_TO_END) {
+        track = audplay.tcount;
+        audtrack &t = audplay.tracks[audplay.tcount];
+        pos = t.position + (t.length > 0 ? t.length - 1 : 0);
+    } else if (fdwCommand & MCI_TO) {
+        pos2tsmp(params->dwTo, audplay.timefmt, &track, &pos);
+    } else {
+        return MMSYSERR_INVALPARAM;
+    }
+
+    if (track <= 0 || track > audplay.tcount) {
+        return MCIERR_FILE_READ;
+    }
+
+    audplay.stream =
+        audiere::OpenSound(audplay.device,
+                           audplay.tracks[track].filename.c_str(),
+                           true);
+    if (!audplay.stream) return MCIERR_FILE_READ;
+    audplay.stream->setVolume(audplay.volume);
+    audplay.stream->setPan(audplay.pan);
+    audplay.stream->setPosition(pos);
+    audplay.track = track;
+    debug("  AUDIERE seek : %s, pos %d",
+             audplay.tracks[track].filename.c_str(), pos);
 
     return MMSYSERR_NOERROR;
 }
@@ -727,6 +778,8 @@ MCIERROR WINAPI hook_mciSendCommandA(MCIDEVICEID IDDevice,
             return mci_close (fdwCommand, dwParam);
         case MCI_PLAY:
             return mci_play  (fdwCommand, dwParam);
+        case MCI_SEEK:
+            return mci_seek  (fdwCommand, dwParam);
         case MCI_PAUSE:
             return mci_pause (fdwCommand, dwParam);
         case MCI_RESUME:
@@ -825,6 +878,24 @@ MCIERROR WINAPI hook_mciSendStringA(LPCSTR lpszCommand,
         }
         params.dwCallback = (DWORD)hwndCallback;
         return mci_play(flag, (DWORD)&params);
+    }
+
+    if (verb == "seek") {
+        auto vparam = str_split(str_lower(param));
+        std::string sto = str_lower(key2val(vparam, "to"));
+        MCI_SEEK_PARMS params;
+        params.dwTo = 0;
+        DWORD flag = 0;
+        if (sto == "start") {
+            flag |= MCI_SEEK_TO_START;
+        } else if (sto == "end") {
+            flag |= MCI_SEEK_TO_END;
+        } else if (!sto.empty()) {
+            flag |= MCI_TO;
+            params.dwTo = str2pos(sto);
+        }
+        params.dwCallback = (DWORD)hwndCallback;
+        return mci_seek(flag, (DWORD)&params);
     }
 
     if (verb == "pause") {
@@ -1036,9 +1107,18 @@ void trace_mci_param(UINT uMsg, DWORD_PTR fdwCommand, DWORD_PTR dwParam,
         case MCI_SEEK: {
             if (!output) {
                 MCI_SEEK_PARMS *params = (MCI_SEEK_PARMS *)dwParam;
-                debug("  MCI_SEEK input : to(%d), callback(0x%08x)",
-                      fdwCommand & MCI_TO ? params->dwTo : 0,
-                      params->dwCallback);
+                char *pos = "";
+                char buf[16];
+                if (fdwCommand & MCI_SEEK_TO_START) {
+                    pos = "start";
+                } else if (fdwCommand & MCI_SEEK_TO_END) {
+                    pos = "end";
+                } else if (fdwCommand & MCI_TO) {
+                    sprintf(buf, "%d", params->dwTo);
+                    pos = buf;
+                }
+                debug("  MCI_SEEK input : to(%s), callback(0x%08x)",
+                      pos, params->dwCallback);
             }
         }
         break;
