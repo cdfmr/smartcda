@@ -14,6 +14,7 @@ typedef struct _config {
     char        cddrive;   // fake cdrom drive
     std::string cdlabel;   // fake cdrom label
     std::string cdroot;    // relocate files on cdrom here
+    std::string regprefix; // relocate reg keys
 } tconfig;
 
 extern tconfig config;

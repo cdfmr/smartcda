@@ -7,6 +7,7 @@
 #include "auxhook.h"
 #include "mixhook.h"
 #include "fshook.h"
+#include "reghook.h"
 #include "mempatch.h"
 
 #pragma comment(lib, "winmm.lib")
@@ -32,6 +33,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
             aux_hook(hinstDLL);
             mix_hook(hinstDLL);
             fs_hook(hinstDLL);
+            reg_hook(hinstDLL);
             mem_patch(cfgfile);
         }
         break;
@@ -41,6 +43,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
             aux_unhook();
             mix_unhook();
             fs_unhook();
+            reg_unhook();
             if (config.debug) {
                 debug("smartcda quit");
                 close_log();

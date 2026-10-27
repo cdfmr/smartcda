@@ -14,6 +14,10 @@ SmartCDA is a small utility to make old games with CD sound tracks portable.
 
   Simple virtual CDROM, allow games to read local files on hard disk instead of data files on CDROM.
 
+* Relocate Registry Keys
+
+  Relocate specific registry keys from HKEY_LOCAL_MACHINE to HKEY_CURRENT_USER, so games can save settings without administrator privilege.
+
 * Memory Patcher
 
   Hack games by patching memory of game process.

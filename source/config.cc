@@ -17,6 +17,7 @@ void load_config(const std::string &filename)
     config.cddrive = drive.empty() ? 0 : drive[0];
     config.cdlabel = ini_read_str(filename, "data", "label");
     config.cdroot = ini_read_str(filename, "data", "root");
+    config.regprefix = ini_read_str(filename, "registry", "lm2cu");
 
     if (config.trace) {
         config.debug = true;

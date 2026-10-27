@@ -94,6 +94,7 @@
     <ClCompile Include="mcihook.cc" />
     <ClCompile Include="mempatch.cc" />
     <ClCompile Include="mixhook.cc" />
+    <ClCompile Include="reghook.cc" />
     <ClCompile Include="smartcda.cc" />
     <ClCompile Include="utils.cc" />
   </ItemGroup>
@@ -105,6 +106,7 @@
     <ClInclude Include="mcihook.h" />
     <ClInclude Include="mempatch.h" />
     <ClInclude Include="mixhook.h" />
+    <ClInclude Include="reghook.h" />
     <ClInclude Include="utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
