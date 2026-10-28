@@ -90,6 +90,7 @@
     <ClCompile Include="auxhook.cc" />
     <ClCompile Include="config.cc" />
     <ClCompile Include="fshook.cc" />
+    <ClCompile Include="hidpi.cc" />
     <ClCompile Include="log.cc" />
     <ClCompile Include="mcihook.cc" />
     <ClCompile Include="mempatch.cc" />
@@ -102,6 +103,7 @@
     <ClInclude Include="auxhook.h" />
     <ClInclude Include="config.h" />
     <ClInclude Include="fshook.h" />
+    <ClInclude Include="hidpi.h" />
     <ClInclude Include="log.h" />
     <ClInclude Include="mcihook.h" />
     <ClInclude Include="mempatch.h" />

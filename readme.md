@@ -18,6 +18,10 @@ SmartCDA is a small utility to make old games with CD sound tracks portable.
 
   Relocate specific registry keys from HKEY_LOCAL_MACHINE to HKEY_CURRENT_USER, so games can save settings without administrator privilege.
 
+* High DPI Scaling Mode
+
+  Scale game window size on high DPI monitors, so we don't need to adjust compatibility settings manually.
+
 * Memory Patcher
 
   Hack games by patching memory of game process.

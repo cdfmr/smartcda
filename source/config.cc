@@ -18,6 +18,7 @@ void load_config(const std::string &filename)
     config.cdlabel = ini_read_str(filename, "data", "label");
     config.cdroot = ini_read_str(filename, "data", "root");
     config.regprefix = ini_read_str(filename, "registry", "lm2cu");
+    config.hidpi = ini_read_str(filename, "display", "hidpi");
 
     if (config.trace) {
         config.debug = true;

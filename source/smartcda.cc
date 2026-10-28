@@ -8,6 +8,7 @@
 #include "mixhook.h"
 #include "fshook.h"
 #include "reghook.h"
+#include "hidpi.h"
 #include "mempatch.h"
 
 #pragma comment(lib, "winmm.lib")
@@ -35,6 +36,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
             fs_hook(hinstDLL);
             reg_hook(hinstDLL);
             mem_patch(cfgfile);
+            set_hidpi_mode(str_lower(config.hidpi));
         }
         break;
 

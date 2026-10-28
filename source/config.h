@@ -15,6 +15,7 @@ typedef struct _config {
     std::string cdlabel;   // fake cdrom label
     std::string cdroot;    // relocate files on cdrom here
     std::string regprefix; // relocate reg keys
+    std::string hidpi;     // hidpi scaling mode
 } tconfig;
 
 extern tconfig config;
